@@ -1,0 +1,30 @@
+{
+  "name": "@samwen/qs-core",
+  "version": "1.0.0",
+  "description": "parse query string and generate intermediate result that can easily covert to database query",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha --reporter spec test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samswen/qs-core.git"
+  },
+  "keywords": [
+    "query string",
+    "mongodb",
+    "mysql"
+  ],
+  "author": "Sam Wen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/samswen/qs-core/issues"
+  },
+  "homepage": "https://github.com/samswen/qs-core#readme",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^7.12.1",
+    "eslint-config-google": "^0.14.0",
+    "mocha": "^8.2.0"
+  }
+}
