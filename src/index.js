@@ -29,8 +29,12 @@ function parse_query(query_vars, cfg, variables_template, get_variables, transfo
     const matrix = build_matrix(name_values, opts);
     const matrix_query = get_matrix_query(matrix);
     const query = get_query(matrix_query, cfg);
+    const result = {query, ...cfg };
     const pagination = get_pagination(matrix_query, opts);
-    return {query, pagination, ...cfg };
+    if (pagination) {
+        result.pagination = pagination;
+    }
+    return result;
 }
 
 function get_name_value_op(key, value) {
@@ -81,8 +85,16 @@ function validate_name_op(name, op, opts) {
     }
     const variable = opts.get_variables(name, opts.cfg);
     if (!variable) {
-        opts.messages.push('skipped, variable not found ' + name);
-        return null;
+        if (pagination_keys.includes(name)) {
+            if (name === 'sort') {
+                return {};
+            } else {
+                return {transfn: Number};
+            }
+        } else {
+            opts.messages.push('skipped, variable not found ' + name);
+            return null;
+        }
     }
     if (variable.read_only) {
         opts.messages.push('skipped, readonly for ' + name);
@@ -379,43 +391,43 @@ function transform_value(variable, name, value, op, name_values) {
 }
 
 function get_pagination(matrix_query, opts) {
+    let has_page_key = false;
+    let has_sort_key = false;
+    for (const key of pagination_keys) {
+        if (key === 'sort') {
+            has_sort_key = true;
+            continue;
+        }
+        if (matrix_query[key]) {
+            has_page_key = true;
+            break;
+        }
+    }
+    if (!has_page_key && !has_sort_key) {
+        return null;
+    }
     const pagination = {};
     for (const key of pagination_keys) {
         const value = matrix_query[key];
         if (!value || !value.eq || value.eq.length === 0) {
-            if (key === 'page_no') {
-                if (opts.cfg[key]) {
-                    pagination[key] = opts.cfg[key];
-                } else {
-                    pagination[key] = page_no_default;
+            if (key === 'sort') {
+                if (has_sort_key && opts.cfg[key]) {
+                    pagination[key] = convert_array_to_object(opts.cfg[key]);
                 }
-            }
-            if (key === 'page_size') {
+            } else if (has_page_key) {
                 if (opts.cfg[key]) {
                     pagination[key] = opts.cfg[key];
                 } else {
                     pagination[key] = page_size_default;
                 }
+            } 
+        } else if (key === 'sort') {
+            if (has_sort_key) {
+                pagination[key] = convert_array_to_object(value.eq);
             }
-            if (key === 'sort') {
-                if (opts.cfg[key]) {
-                    pagination[key] = convert_array_to_object(opts.cfg[key]);
-                }
-            }
-            continue;
-        }
-        if (key === 'page_no') {
+        } else if (has_page_key) {
             const index = value.eq.length - 1;
             pagination[key] = value.eq[index];
-            continue;
-        }
-        if (key === 'page_size') {
-            const index = value.eq.length - 1;
-            pagination[key] = value.eq[index];
-            continue;
-        }
-        if (key === 'sort') {
-            pagination[key] = convert_array_to_object(value.eq);
         }
     }
     return pagination;
