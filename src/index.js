@@ -6,10 +6,8 @@ module.exports = {
 
 const operators = [ 'eq', 'ne', 'bt', 'gt', 'gte', 'lte', 'lt', 'regex'];
 const pagination_keys = [ 'sort', 'page_no', 'page_size' ];
-const page_no_default = 1;
-const page_size_default = 1;
 
-function parse_query(query_vars, cfg, variables_template, get_variables, transform_name, messages) {
+function parse_query(query_vars, cfg, variables_template, get_variables, transform_name, messages = []) {
     const name_values = {};
     if (!get_variables && variables_template) {
         get_variables = (x) => variables_template[x];
@@ -89,7 +87,7 @@ function validate_name_op(name, op, opts) {
             if (name === 'sort') {
                 return {};
             } else {
-                return {transfn: Number};
+                return {transfn: parseInt};
             }
         } else {
             opts.messages.push('skipped, variable not found ' + name);
@@ -394,13 +392,12 @@ function get_pagination(matrix_query, opts) {
     let has_page_key = false;
     let has_sort_key = false;
     for (const key of pagination_keys) {
-        if (key === 'sort') {
-            has_sort_key = true;
-            continue;
-        }
         if (matrix_query[key]) {
-            has_page_key = true;
-            break;
+            if (key === 'sort') {
+                has_sort_key = true;
+            } else {
+                has_page_key = true;
+            }
         }
     }
     if (!has_page_key && !has_sort_key) {
@@ -410,17 +407,7 @@ function get_pagination(matrix_query, opts) {
     for (const key of pagination_keys) {
         const value = matrix_query[key];
         if (!value || !value.eq || value.eq.length === 0) {
-            if (key === 'sort') {
-                if (has_sort_key && opts.cfg[key]) {
-                    pagination[key] = convert_array_to_object(opts.cfg[key]);
-                }
-            } else if (has_page_key) {
-                if (opts.cfg[key]) {
-                    pagination[key] = opts.cfg[key];
-                } else {
-                    pagination[key] = page_size_default;
-                }
-            } 
+            opts.messages.push(`skipped ${key}, incorrect pagination value: ${JSON.stringify(value)}`);
         } else if (key === 'sort') {
             if (has_sort_key) {
                 pagination[key] = convert_array_to_object(value.eq);

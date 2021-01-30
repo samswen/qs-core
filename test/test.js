@@ -32,7 +32,7 @@ describe('Test qs-core', () => {
         expect(result).to.have.property('query');
         expect(result).to.have.property('pagination');
         expect(result.query).to.deep.equal({x: {eq: ['abc']}, y: {eq: [123]}, z: {eq: ['a', 'b', 'c']}});
-        expect(result.pagination).to.deep.equal({page_no: 1, page_size: 1});
+        expect(result.pagination).to.deep.equal({page_no: 1});
     });
 
     it('test parse_query case 3: transfn and |', async () => {
@@ -73,7 +73,7 @@ describe('Test qs-core', () => {
         expect(result).to.have.property('query');
         expect(result).to.have.property('pagination');
         expect(result.query).to.deep.equal({x: {eq: ['abc_added']}, y: {eq: ['123']}, z: {eq: ['a', 'b', 'c']}});
-        expect(result.pagination).to.deep.equal({page_no: 1, page_size: 10});
+        expect(result.pagination).to.deep.equal({page_size: 10});
     });
 
     it('test parse_query case 5: transfn and | with sort', async () => {
