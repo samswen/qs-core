@@ -7,13 +7,10 @@ module.exports = {
 const operators = [ 'eq', 'ne', 'bt', 'gt', 'gte', 'lte', 'lt', 'regex'];
 const pagination_keys = [ 'sort', 'page_no', 'page_size' ];
 
-function parse_query(query_vars, cfg, variables_template, get_variables, transform_name, messages = []) {
+function parse_query(query_vars, cfg = {}, variables_template, get_variables, transform_name, messages = []) {
     const name_values = {};
     if (!get_variables && variables_template) {
         get_variables = (x) => variables_template[x];
-    }
-    if (!cfg) {
-        cfg = {};
     }
     const opts = { variables_template, get_variables, transform_name, cfg, messages };
     for (const key in query_vars) {
@@ -393,31 +390,24 @@ function transform_value(variable, name, value, op, name_values) {
 }
 
 function get_pagination(matrix_query, opts) {
-    let has_page_key = false;
-    let has_sort_key = false;
+    let pagination = null;
     for (const key of pagination_keys) {
-        if (matrix_query[key]) {
-            if (key === 'sort') {
-                has_sort_key = true;
-            } else {
-                has_page_key = true;
-            }
+        if (!matrix_query[key]) {
+            continue;
         }
-    }
-    if (!has_page_key && !has_sort_key) {
-        return null;
-    }
-    const pagination = {};
-    for (const key of pagination_keys) {
         const value = matrix_query[key];
         if (!value || !value.eq || value.eq.length === 0) {
             opts.messages.push(`skipped ${key}, incorrect pagination value: ${JSON.stringify(value)}`);
         } else if (key === 'sort') {
-            if (has_sort_key) {
-                pagination[key] = convert_array_to_object(value.eq);
+            if (!pagination) {
+                pagination = {};
             }
-        } else if (has_page_key) {
+            pagination[key] = convert_array_to_object(value.eq);
+        } else {
             const index = value.eq.length - 1;
+            if (!pagination) {
+                pagination = {};
+            }
             pagination[key] = value.eq[index];
         }
     }
