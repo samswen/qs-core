@@ -30,7 +30,11 @@ function parse_query(query_vars, cfg, variables_template, get_variables, transfo
     const result = {query, ...cfg };
     const pagination = get_pagination(matrix_query, opts);
     if (pagination) {
-        result.pagination = pagination;
+        if (result.pagination) {
+            result.pagination = {...result.pagination, ...pagination};
+        } else {
+            result.pagination = pagination;
+        }
     }
     return result;
 }
