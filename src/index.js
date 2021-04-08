@@ -32,6 +32,13 @@ function parse_query(query_vars, cfg = {}, variables_template, get_variables, tr
         } else {
             result.pagination = pagination;
         }
+        if (result.pagination.sort) {
+            if (pagination.sort) {
+                result.pagination.sort_default = false;
+            } else {
+                result.pagination.sort_default = true;
+            }
+        }
     }
     return result;
 }

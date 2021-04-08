@@ -106,7 +106,7 @@ describe('Test qs-core', () => {
         expect(result).to.have.property('query');
         expect(result).to.have.property('pagination');
         expect(result.query).to.deep.equal({x: {eq: ['abc_added']}, y: {eq: ['123']}, z: {eq: ['a', 'b', 'c']}});
-        expect(result.pagination).to.deep.equal({sort: {price: -1}});
+        expect(result.pagination).to.deep.equal({sort: {price: -1}, sort_default: false});
         expect(messages.length).equals(0);
     });
 

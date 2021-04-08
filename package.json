@@ -1,6 +1,6 @@
 {
   "name": "@samwen/qs-core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "parse query string and generate intermediate result that can easily covert to database query",
   "main": "src/index.js",
   "scripts": {
