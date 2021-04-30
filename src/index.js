@@ -32,12 +32,12 @@ function parse_query(query_vars, cfg = {}, variables_template, get_variables, tr
         } else {
             result.pagination = pagination;
         }
-        if (result.pagination.sort) {
-            if (pagination.sort) {
-                result.pagination.sort_default = false;
-            } else {
-                result.pagination.sort_default = true;
-            }
+        if (!result.pagination.sort) {
+            delete result.pagination.sort_default;
+        }
+    } else {
+        if (result.pagination && result.pagination.sort) {
+            result.pagination.sort_default = true;
         }
     }
     return result;
@@ -398,6 +398,7 @@ function transform_value(variable, name, value, op, name_values) {
 
 function get_pagination(matrix_query, opts) {
     let pagination = null;
+    let sort_default = true;
     for (const key of pagination_keys) {
         if (!matrix_query[key]) {
             continue;
@@ -410,6 +411,7 @@ function get_pagination(matrix_query, opts) {
                 pagination = {};
             }
             pagination[key] = convert_array_to_object(value.eq);
+            sort_default = false;
         } else {
             const index = value.eq.length - 1;
             if (!pagination) {
@@ -417,6 +419,9 @@ function get_pagination(matrix_query, opts) {
             }
             pagination[key] = value.eq[index];
         }
+    }
+    if (pagination) {
+        pagination.sort_default = sort_default;
     }
     return pagination;
 }
