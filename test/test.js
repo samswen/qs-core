@@ -301,4 +301,78 @@ describe('Test qs-core', () => {
         expect(messages).to.deep.equal(["skipped, variable not found y"]);
     });
 
+    it('test parse_query case 19: with default sort in template', async () => {
+        const query_vars = {
+            x: 'abc',
+            y: '123',
+            page_no: 1
+        };
+        const messages = [];
+        const result = qs_core.parse_query(query_vars, {}, {x: {}, y: {}, sort: {default: ['s', 1]}}, null, null, messages);
+        //console.log(JSON.stringify(result, null, 2));
+        //console.log(JSON.stringify(messages, null, 2));
+        expect(result).to.not.equal(null);
+        expect(result).to.have.property('query');
+        expect(result).to.have.property('pagination');
+        expect(result.query).to.deep.equal({x: {eq: ['abc']}, y: {eq: [123]}});
+        expect(result.pagination).to.deep.equal({page_no: 1, sort: {s: 1}, sort_default: true});
+        expect(messages.length).equals(0);
+    });
+
+    it('test parse_query case 20: with default pagination in cfg', async () => {
+        const query_vars = {
+            x: 'abc',
+            y: '123',
+            page_no: 1
+        };
+        const messages = [];
+        const result = qs_core.parse_query(query_vars, {pagination: {page_no: 3, page_size: 2, sort: {s: 1}}}, null, null, null, messages);
+        //console.log(JSON.stringify(result, null, 2));
+        //console.log(JSON.stringify(messages, null, 2));
+        expect(result).to.not.equal(null);
+        expect(result).to.have.property('query');
+        expect(result).to.have.property('pagination');
+        expect(result.query).to.deep.equal({x: {eq: ['abc']}, y: {eq: [123]}});
+        expect(result.pagination).to.deep.equal({page_no: 1, page_size: 2, sort: {s: 1}, sort_default: true});
+        expect(messages.length).equals(0);
+    });
+
+    it('test parse_query case 21: with sort and default sort in template', async () => {
+        const query_vars = {
+            x: 'abc',
+            y: '123',
+            page_no: 1,
+            sort: 's|-1',
+        };
+        const messages = [];
+        const result = qs_core.parse_query(query_vars, {}, {x: {}, y: {}, sort: {default: ['s', 1]}}, null, null, messages);
+        //console.log(JSON.stringify(result, null, 2));
+        //console.log(JSON.stringify(messages, null, 2));
+        expect(result).to.not.equal(null);
+        expect(result).to.have.property('query');
+        expect(result).to.have.property('pagination');
+        expect(result.query).to.deep.equal({x: {eq: ['abc']}, y: {eq: [123]}});
+        expect(result.pagination).to.deep.equal({page_no: 1, sort: {s: -1}, sort_default: false});
+        expect(messages.length).equals(0);
+    });
+
+    it('test parse_query case 22: with sort and default pagination in cfg', async () => {
+        const query_vars = {
+            x: 'abc',
+            y: '123',
+            page_no: 1,
+            sort: 's|-1',
+        };
+        const messages = [];
+        const result = qs_core.parse_query(query_vars, {pagination: {page_no: 3, page_size: 2, sort: {s: 1}}}, null, null, null, messages);
+        //console.log(JSON.stringify(result, null, 2));
+        //console.log(JSON.stringify(messages, null, 2));
+        expect(result).to.not.equal(null);
+        expect(result).to.have.property('query');
+        expect(result).to.have.property('pagination');
+        expect(result.query).to.deep.equal({x: {eq: ['abc']}, y: {eq: [123]}});
+        expect(result.pagination).to.deep.equal({page_no: 1, page_size: 2, sort: {s: -1}, sort_default: false});
+        expect(messages.length).equals(0);
+    });
+
 });

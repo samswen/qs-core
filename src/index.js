@@ -12,7 +12,7 @@ function parse_query(query_vars, cfg = {}, variables_template, get_variables, tr
     if (!get_variables && variables_template) {
         get_variables = (x) => variables_template[x];
     }
-    const opts = { variables_template, get_variables, transform_name, cfg, messages };
+    const opts = { variables_template, get_variables, transform_name, cfg, messages, sort_default: false };
     for (const key in query_vars) {
         const { name, value, op } = get_name_value_op(key, query_vars[key]);
         const transformed_name = transform_name ? transform_name(name, cfg) : name;
@@ -23,22 +23,21 @@ function parse_query(query_vars, cfg = {}, variables_template, get_variables, tr
     }
     const matrix = build_matrix(name_values, opts);
     const matrix_query = get_matrix_query(matrix);
-    const query = get_query(matrix_query, cfg);
+    const query = get_query(matrix_query);
     const result = {query, ...cfg };
     const pagination = get_pagination(matrix_query, opts);
     if (pagination) {
         if (result.pagination) {
             result.pagination = {...result.pagination, ...pagination};
+            if (!pagination.sort && result.pagination.sort) {
+                opts.sort_default = true;
+            }
         } else {
             result.pagination = pagination;
         }
-        if (!result.pagination.sort) {
-            delete result.pagination.sort_default;
-        }
-    } else {
-        if (result.pagination && result.pagination.sort) {
-            result.pagination.sort_default = true;
-        }
+    }
+    if (result.pagination && result.pagination.sort) {
+        result.pagination.sort_default = opts.sort_default;
     }
     return result;
 }
@@ -161,7 +160,10 @@ function build_matrix(name_values, opts) {
                     variable = opts.cfg[name];
                 }
             }
-            get_default_values(name_values, name, variable, opts.messages);
+            const result = get_default_values(name_values, name, variable, opts.messages);
+            if (result && name === 'sort') {
+                opts.sort_default = true;
+            }
         }
     }
     const matrix = {};
@@ -398,7 +400,6 @@ function transform_value(variable, name, value, op, name_values) {
 
 function get_pagination(matrix_query, opts) {
     let pagination = null;
-    let sort_default = true;
     for (const key of pagination_keys) {
         if (!matrix_query[key]) {
             continue;
@@ -411,7 +412,6 @@ function get_pagination(matrix_query, opts) {
                 pagination = {};
             }
             pagination[key] = convert_array_to_object(value.eq);
-            sort_default = false;
         } else {
             const index = value.eq.length - 1;
             if (!pagination) {
@@ -419,9 +419,6 @@ function get_pagination(matrix_query, opts) {
             }
             pagination[key] = value.eq[index];
         }
-    }
-    if (pagination) {
-        pagination.sort_default = sort_default;
     }
     return pagination;
 }
